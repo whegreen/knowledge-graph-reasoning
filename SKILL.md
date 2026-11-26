@@ -17,6 +17,12 @@ Every KG task follows this pipeline:
 4. **Store** - Write to JSON-LD graph format
 5. **Query** - Traverse, search, and infer from the graph
 
+**Companion gate:** when the user asks whether *source documents* agree — cross-document
+drift, stale version references, conflicting terminology, or a topic-level coherence
+resume — read `skills/document-coherence/SKILL.md` and run its deterministic checker
+before ingesting anything into the graph. It emits JSON escalations; never resolve a
+contradiction silently, and never let recency override the configured fact owner.
+
 ## 1. Building a Knowledge Graph
 
 ### Entity Extraction

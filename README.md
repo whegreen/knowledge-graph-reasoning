@@ -116,9 +116,25 @@ knowledge-graph-reasoning/
 ├── references/
 │   ├── schemas.md              # Complete JSON-LD schemas for nodes, edges, graphs
 │   └── examples.md             # Worked examples with real graphs
+├── skills/
+│   └── document-coherence/     # Companion: pre-ingest source consistency gate
 └── evals/
     └── evals.json              # 5 test cases for skill evaluation
 ```
+
+## Companion skill: document-coherence
+
+Graph validation checks a fact **against the graph**. It does not check whether the
+source documents themselves still agree before that fact is ingested. The companion
+skill [`skills/document-coherence/`](skills/document-coherence/SKILL.md) covers that
+step: a config-driven, deterministic index of facts across a document set, with
+`--pair`, `--topics`, `--audit`, `--json` and a CI `--strict` mode.
+
+It is a **gate**, not a second graph reasoner: no model calls, no graph writes, and
+contradictions are handed back with both quotes rather than silently resolved. The
+`--json` escalations are data a host may route to domain agents. See
+[`references/schemas.md`](skills/document-coherence/references/schemas.md) for config
+and output contracts.
 
 ## Swarm Labs Ecosystem
 
