@@ -31,10 +31,10 @@ It is a **gate**, not a graph reasoner. It never writes nodes, never calls a mod
 ## Flow
 
 ```
-config → index facts (doc + line + normalized value) → compare → report → escalations → human
+config → index facts (doc + line + normalized value) → compare → report → escalations / notes → human
 ```
 
-`--json` is the handoff contract: its `escalations` are **data** (quotes and a `kind`), never an instruction to call a specific agent. A host may route those escalations to domain agents; this skill does not.
+`--json` is the handoff contract: its `escalations` are **data** (quotes and a `kind`), never an instruction to call a specific agent. A host may route those escalations to domain agents; this skill does not. `notes` carries one-sided topics that are expected differences in document scope — they are reported but not escalated.
 
 ## Commands
 
@@ -66,10 +66,11 @@ Everything project-specific lives in JSON; the Python engine contains no documen
 | `units`, `token_aliases` | Unit normalization (`36 month` → `3 year`) and token canonicalization |
 | `aliases`, `one_sided`, `skip_patterns`, `skip_sections` | False-positive control |
 | `topics`, `term_topics`, `canon_terms` | Topic resume and term-variant detection |
+| `shared_topics` | Topics expected in both documents; a `SATU-SISI` finding is escalated only for these, otherwise it is a `note` |
 | `version_labels` | Which document a version mention refers to |
 | `owners` | Authoritative source per fact prefix; conflicts are judged against it |
 
-Interval comparison returns `SAMA`, `SUB-TAHAP`, `OVERLAP`, or `BEDA`. `SUB-TAHAP` means one side split the same range into sub-ranges — **not** a conflict. One-sided prefixes (ids, protocol codes, DB names) are intentionally not reported as drift.
+Interval comparison returns `SAMA`, `SUB-TAHAP`, `OVERLAP`, or `BEDA`. `SUB-TAHAP` means one side split the same range into sub-ranges — **not** a conflict. Aliases are not a free pass: when the aliased key carries a value, that value is compared too (`ALIAS/SUB-TAHAP`, `ALIAS/BEDA`). One-sided prefixes (ids, protocol codes, DB names) are intentionally not reported as drift.
 
 ## Output contract
 
@@ -81,21 +82,24 @@ Interval comparison returns `SAMA`, `SUB-TAHAP`, `OVERLAP`, or `BEDA`. `SUB-TAHA
   "data": {
     "findings": [{"topic": "framework", "label": "ISTILAH BEDA", "lines_a": [36], "lines_b": [9]}],
     "escalations": [{"topic": "framework", "label": "ISTILAH BEDA", "kind": "topic",
-                     "a": "handbook:36 \"...\"", "b": "curriculum:9 \"...\""}]
+                     "a": "handbook:36 \"...\"", "b": "curriculum:9 \"...\""}],
+    "notes": [{"topic": "inclusion", "label": "SATU-SISI", "kind": "topic",
+               "a": "handbook:118 \"...\"", "b": "-"}]
   }
 }
 ```
 
-`coverage` is mandatory: a verdict is only as strong as the fraction of facts with comparable values. Never present `KOHEREN` as "everything was checked".
+`escalations` are complete and sorted by severity (`REFERENSI BASI`, `KONFLIK`, `ISTILAH BEDA`, `SATU-SISI`) — they are never truncated in JSON. `coverage` is mandatory: a verdict is only as strong as the fraction of facts with comparable values. Never present `KOHEREN` as "everything was checked".
 
 ## Rules
 
-1. Deterministic first. Tokens are spent only on items emitted under `escalations`.
+1. Deterministic first. Tokens are spent only on items emitted under `escalations`; `notes` are informational and do not call an agent.
 2. Contradictions are **never** silently resolved. Preserve both quotes and ask the owner.
 3. `ISTILAH BEDA` is a terminology finding, not proof of contradictory meaning.
 4. Fix the **consumer**, not the owner, unless the owner is confirmed wrong.
 5. Recency does not win ties. The configured `owners` decide which value is authoritative.
 6. This skill emits data; the host decides whether to route escalations to an agent.
+7. A one-sided topic is a difference in document scope, not drift, unless it is listed in `shared_topics`.
 
 ## Limits
 

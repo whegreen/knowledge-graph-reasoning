@@ -45,13 +45,15 @@
   "one_sided": ["id"],
   "aliases": {"age:lower": "age:grade1"},
   "term_topics": ["framework"],
+  "shared_topics": ["framework", "age ranges", "assessment"],
   "canon_terms": {
     "framework": {"montessori": "montessori", "forest": "forest", "little": "littlehouse"}
   },
   "topics": [
     {"name": "framework", "pattern": "montessori|forest|little\\s*house"},
     {"name": "age ranges", "pattern": "primary|lower|upper|grade\\s*1"},
-    {"name": "assessment", "pattern": "assessment|scoring"}
+    {"name": "assessment", "pattern": "assessment|scoring"},
+    {"name": "inclusion", "pattern": "inclusion|inklusi"}
   ],
   "version_labels": {
     "handbook": ["Handbook", "Team Handbook"],

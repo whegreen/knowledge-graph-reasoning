@@ -119,12 +119,27 @@ def pair(index: dict, doc_a: str, doc_b: str, cfg: dict) -> dict:
         if label == "BEDA" and any(f["id"] == prefix and f.get("compare") == "term_variant"
                                    for f in cfg["facts"]):
             label = "ISTILAH BEDA"
-        if label == "SATU-SISI":
+        alias = None
+        alias_doc = ""
+        alias_entries: list[dict] = []
+        if label == "SATU-SISI" and bool(a) != bool(b):
             alias = cfg["aliases"].get(key) or next(
                 (k for k, v in cfg["aliases"].items() if v == key), None)
-            if alias and (alias in per_doc[doc_a] or alias in per_doc[doc_b]):
-                label = "ALIAS"
-        findings.append({"key": key, "label": label, doc_a: a, doc_b: b})
+            if alias:
+                alias_doc = doc_a if not a else doc_b
+                alias_entries = per_doc[alias_doc].get(alias, [])
+                alt_v = [x["value"] for x in alias_entries if x["value"]]
+                own_v = av or bv
+                if own_v and alt_v:
+                    verdict = classify(own_v, alt_v, cfg)
+                    label = "ALIAS" if verdict == "SAMA" else f"ALIAS/{verdict}"
+                elif alias_entries:
+                    label = "ALIAS"
+        finding = {"key": key, "label": label, doc_a: a, doc_b: b}
+        if alias:
+            finding.update({"alias": alias, "alias_doc": alias_doc,
+                            "alias_entries": alias_entries})
+        findings.append(finding)
     refs = version_refs(index, doc_a, doc_b, cfg)
     conflicts = sum(1 for f in findings if f["label"] == "BEDA") + len(refs)
     return {"a": doc_a, "b": doc_b, "findings": findings,
@@ -200,7 +215,10 @@ def topics(index: dict, doc_a: str, doc_b: str, cfg: dict) -> dict:
         text = re.sub(r"\s+", " ", lines_by_doc[doc][lineno - 1]).strip()[:130]
         return f'{doc}:{lineno} "{text}"'
 
-    escalations = []
+    # satu-sisi hanya perlu agent bila topiknya memang diharapkan di dua dokumen.
+    shared = set(cfg.get("shared_topics", []))
+    escalations: list[dict] = []
+    notes: list[dict] = []
     for r in version_refs(index, doc_a, doc_b, cfg):
         escalations.append({"topic": "versi dokumen", "label": "REFERENSI BASI",
                             "a": quote(r["from"], r["line"]),
@@ -208,13 +226,19 @@ def topics(index: dict, doc_a: str, doc_b: str, cfg: dict) -> dict:
     for f in findings:
         if f["label"] not in {"KONFLIK", "ISTILAH BEDA", "SATU-SISI"}:
             continue
-        escalations.append({"topic": f["topic"], "label": f["label"],
-                            "a": quote(doc_a, f["lines_a"][0] if f["lines_a"] else None),
-                            "b": quote(doc_b, f["lines_b"][0] if f["lines_b"] else None),
-                            "kind": "topic"})
+        item = {"topic": f["topic"], "label": f["label"],
+                "a": quote(doc_a, f["lines_a"][0] if f["lines_a"] else None),
+                "b": quote(doc_b, f["lines_b"][0] if f["lines_b"] else None),
+                "kind": "topic"}
+        if f["label"] == "SATU-SISI" and f["topic"] not in shared:
+            notes.append(item)
+        else:
+            escalations.append(item)
+    severity = {"REFERENSI BASI": 0, "KONFLIK": 1, "ISTILAH BEDA": 2, "SATU-SISI": 3}
+    escalations.sort(key=lambda e: (severity.get(e["label"], 4), e["topic"]))
     return {"a": doc_a, "b": doc_b, "findings": findings,
             "present": {d: sorted(present[d]) for d in (doc_a, doc_b)},
-            "escalations": escalations[:6], "escalations_hidden": max(0, len(escalations) - 6),
+            "escalations": escalations, "notes": notes,
             "coverage": coverage_note(index)}
 
 
