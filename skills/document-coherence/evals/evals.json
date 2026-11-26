@@ -1,0 +1,35 @@
+{
+  "skill_name": "document-coherence",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Two handbooks state 'Primary 36-48 months' and 'Primary 3-4 years'. Check whether these conflict before I merge the documents.",
+      "expected_output": "Deterministic normalization turns 36-48 months into 3-4 years. The values are reported as SAMA/SUB-TAHAP, not a conflict. Coverage is stated explicitly. No model call, no graph write.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "One document says 'Lower 3 years' and another says 'Grade 1 3 years'. Is this drift?",
+      "expected_output": "The configured alias mapping treats Lower and Grade 1 as the same fact, so the finding is labeled ALIAS rather than SATU-SISI. Both source lines are shown and nothing is auto-edited.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Compare terminology between two curriculum documents: one uses 'Montessori Practical Life' and 'LittleHouse Homeschool', the other 'Montessori Inspired' and 'Little House'. Give me a topic resume.",
+      "expected_output": "Topic resume reports framework as ISTILAH BEDA with line-numbered quotes from both documents and an escalation item. It does not claim contradictory meaning; it asks for a canonical term decision.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "A handbook references 'Curriculum v1.9' but the curriculum document's current version is 2.0. Find stale references.",
+      "expected_output": "A version-reference finding with the source document, line number, expected version and found version. --strict exits 1. The escalation contains data only, with no agent routing.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "In a topic comparison, 'assessment' appears in both documents, while 'inclusion' appears only in the handbook. What should be reported?",
+      "expected_output": "assessment is KOHEREN; inclusion is SATU-SISI with the handbook line and a dash for the other side. SATU-SISI does not trigger --strict failure, but does create an escalation for review.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "docs": [
+    {"id": "handbook", "path": "docs/handbook.md", "version": "1.2"},
+    {"id": "curriculum", "path": "docs/curriculum.md", "version": "2.0"}
+  ],
+  "units": {
+    "year": {"factor": 12, "label": "year"},
+    "yr": {"factor": 12, "label": "year"},
+    "month": {"factor": 1, "label": "month"},
+    "mo": {"factor": 1, "label": "month"}
+  },
+  "token_aliases": {"grade 1": "grade1"},
+  "skip_patterns": {"freq": "\\d+\\s*[x×]\\s*/\\s*(week|month)"},
+  "skip_sections": "changelog|history|version history",
+  "facts": [
+    {
+      "id": "id",
+      "emit": "code",
+      "pattern": "\\b([A-Z]{3})-RF(\\d{2})\\b",
+      "compare": "existence"
+    },
+    {
+      "id": "age",
+      "emit": "age",
+      "pattern": "\\b(Primary|Lower|Upper|Grade\\s*1)\\b[^.\\n]{0,40}?(\\d{1,2}(?:\\s*-\\s*\\d{1,2})?)\\s*(year|yr|month|mo)s?\\b",
+      "flags": "i",
+      "skip_if": "freq",
+      "compare": "interval"
+    },
+    {
+      "id": "framework",
+      "emit": "term",
+      "pattern": "(Montessori|Forest\\s*School|Little\\s*House)",
+      "flags": "i",
+      "terms": {
+        "montessori": "montessori",
+        "forest": "forest",
+        "little": "littlehouse"
+      },
+      "compare": "term_variant"
+    }
+  ],
+  "owners": {"age": "curriculum", "framework": "curriculum"},
+  "one_sided": ["id"],
+  "aliases": {"age:lower": "age:grade1"},
+  "term_topics": ["framework"],
+  "canon_terms": {
+    "framework": {"montessori": "montessori", "forest": "forest", "little": "littlehouse"}
+  },
+  "topics": [
+    {"name": "framework", "pattern": "montessori|forest|little\\s*house"},
+    {"name": "age ranges", "pattern": "primary|lower|upper|grade\\s*1"},
+    {"name": "assessment", "pattern": "assessment|scoring"}
+  ],
+  "version_labels": {
+    "handbook": ["Handbook", "Team Handbook"],
+    "curriculum": ["Curriculum", "Programme Curriculum"]
+  }
+}
