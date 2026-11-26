@@ -28,8 +28,9 @@ CFG = {
          "compare": "term_variant"},
     ],
     "one_sided": [],
-    "aliases": {},
+    "aliases": {"age:beta": "age:alpha"},
     "term_topics": ["framework"],
+    "shared_topics": ["framework"],
     "canon_terms": {"framework": {"montessori": "montessori", "little": "littlehouse"}},
     "topics": [
         {"name": "framework", "pattern": "montessori|little\\s*house|littlehouse"},
@@ -46,7 +47,7 @@ def self_test() -> int:
             "# Alpha\nAlpha 3 tahun. Montessori Practical Life. LittleHouse Homeschool. Inklusi.\n",
             encoding="utf-8")
         (root / "b.md").write_text(
-            "# Alpha\nAlpha 36 bulan. Little House. Montessori Practical Life.\n", encoding="utf-8")
+            "# Alpha\nAlpha 36 bulan. Beta 2 tahun. Little House. Montessori Practical Life.\n", encoding="utf-8")
         cfg = {**CFG, "docs": [{"id": "a", "path": "a.md", "version": "1.0"},
                                {"id": "b", "path": "b.md", "version": "1.0"}],
                "root": str(root)}
@@ -60,11 +61,19 @@ def self_test() -> int:
         pr = pair(idx, "a", "b", cfg)
         fw = next(f for f in pr["findings"] if f["key"] == "framework:littlehouse")
         assert fw["label"] == "ISTILAH BEDA", fw
+        # aliases compare values instead of merely relabelling one-sided facts.
+        beta = next(f for f in pr["findings"] if f["key"] == "age:beta")
+        assert beta["label"] == "ALIAS/BEDA", beta
         tr = topics(idx, "a", "b", cfg)
         labels = {f["topic"]: f["label"] for f in tr["findings"]}
         assert labels["framework"] == "ISTILAH BEDA", labels
         assert labels["inklusi"] == "SATU-SISI", labels
         assert all("route" not in e for e in tr["escalations"])
+        # one-sided outside shared_topics is information, not an escalation.
+        assert any(n["topic"] == "inklusi" for n in tr["notes"]), tr
+        assert not any(e["topic"] == "inklusi" for e in tr["escalations"]), tr
+        # escalations are sorted by severity and never truncated in JSON data.
+        assert tr["escalations"][0]["label"] in {"REFERENSI BASI", "KONFLIK", "ISTILAH BEDA"}, tr
 
     # batas paket: hanya stdlib, tanpa dependency eksternal.
     for p in Path(__file__).resolve().parent.glob("*.py"):

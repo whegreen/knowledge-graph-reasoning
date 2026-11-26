@@ -28,7 +28,7 @@
     {
       "id": 5,
       "prompt": "In a topic comparison, 'assessment' appears in both documents, while 'inclusion' appears only in the handbook. What should be reported?",
-      "expected_output": "assessment is KOHEREN; inclusion is SATU-SISI with the handbook line and a dash for the other side. SATU-SISI does not trigger --strict failure, but does create an escalation for review.",
+      "expected_output": "assessment is KOHEREN; inclusion is SATU-SISI with the handbook line and a dash for the other side. Since inclusion is not in shared_topics it appears under notes, not escalations. Neither triggers --strict failure.",
       "files": []
     }
   ]

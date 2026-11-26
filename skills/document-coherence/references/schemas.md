@@ -13,8 +13,9 @@ Top level: `schema: 1`, plus the keys below. No Python code changes are needed t
 | `skip_sections` | regex | sections treated as changelog/history |
 | `facts` | array | see below |
 | `one_sided` | array of prefixes | one-sided mentions are not drift |
-| `aliases` | map fact key→fact key | e.g. `age:k1 → age:kindy1` |
+| `aliases` | map fact key→fact key | e.g. `age:k1 → age:kindy1`; values of the aliased key are compared too (`ALIAS/SUB-TAHAP`) |
 | `term_topics` | array of topic names | terminology differences here are `ISTILAH BEDA`, not conflicts |
+| `shared_topics` | array of topic names | only these `SATU-SISI` findings escalate; the rest go to `notes` |
 | `canon_terms` | map topic→{needle→canonical} | first matching needle wins |
 | `topics` | array of `{name, pattern}` | powers `--mode topics` |
 | `version_labels` | map doc id→array of labels | identifies which document a `vN.N` mention refers to |
@@ -60,4 +61,4 @@ Top level: `schema: 1`, plus the keys below. No Python code changes are needed t
 }
 ```
 
-`data` contains `findings`, plus `refs` (pair), `escalations` (topics) or `conflicts` (audit). Escalations have `topic`, `label`, `kind`, `a`, `b` — and no routing information by design.
+`data` contains `findings`, plus `refs` (pair), `escalations` + `notes` (topics) or `conflicts` (audit). Escalations have `topic`, `label`, `kind`, `a`, `b` — and no routing information by design. They are sorted by severity and never truncated in JSON. `notes` carry one-sided topics outside `shared_topics` as information, not agent work.
